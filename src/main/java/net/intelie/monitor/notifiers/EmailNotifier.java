@@ -38,12 +38,16 @@ public class EmailNotifier {
             for (String toSms : smsRecipients) {
                 sms.addRecipient(Message.RecipientType.TO, new InternetAddress(toSms));
             }
-            message.setSubject(subject);
-            message.setText(body);
-            sms.setSubject(smsPasscode);
-            sms.setText(body);
-            Transport.send(message);
-            Transport.send(sms);
+            if (!recipients.isEmpty()) {
+                message.setSubject(subject);
+                message.setText(body);
+                Transport.send(message);
+            }
+            if (!smsRecipients.isEmpty()) {
+                sms.setSubject(smsPasscode);
+                sms.setText(body);
+                Transport.send(sms);
+            }
         }
         catch (MessagingException e) {
             logger.error("Could not send email. Verify correctness of file mail.properties", e);
