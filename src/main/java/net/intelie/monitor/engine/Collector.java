@@ -1,5 +1,8 @@
 package net.intelie.monitor.engine;
 
+import net.intelie.monitor.events.CompositeEvent;
+import net.intelie.monitor.events.ServerUnavailable;
+import net.intelie.monitor.listeners.Listener;
 import org.apache.log4j.Logger;
 
 import java.util.Timer;
@@ -12,24 +15,43 @@ public class Collector {
 
     private static Logger logger = Logger.getLogger(Collector.class);
 
-    private ActiveMQMonitor activeMQMonitor;
-    private static Timer timer;
+    private EngineChecker checker;
+    private Listener listener;
+    private QueueCollection collection;
+    private Timer timer;
 
     private static final Integer INTERVAL_IN_SECS = 20;
 
 
-    public Collector(ActiveMQMonitor activeMQMonitor) {
-        this.activeMQMonitor = activeMQMonitor;
+    public Collector(EngineChecker checker, Listener listener, QueueCollection collection) {
+        this.checker = checker;
+        this.listener = listener;
+        this.collection = collection;
 
         timer = new Timer();
+    }
+
+    public void start() {
         timer.schedule(new MonitorTask(), 0, INTERVAL_IN_SECS * 1000);
     }
 
     class MonitorTask extends TimerTask {
         public void run() {
             logger.debug("Retrieving information");
-            activeMQMonitor.fetch();
+            try {
+                checker.connect();
+                collection.checkAll(checker);
+            } catch (CompositeEvent e) {
+                listener.notify(e);
+            } catch (ServerUnavailable e) {
+                listener.notify(e);
+            } catch (Exception e) {
+                logger.warn("Error retrieving information: " + e.getMessage());
+                logger.debug(e);
+            }
         }
+
     }
 
 }
+

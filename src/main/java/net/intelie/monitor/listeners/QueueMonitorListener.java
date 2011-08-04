@@ -1,46 +1,42 @@
 package net.intelie.monitor.listeners;
 
 import net.intelie.monitor.events.Event;
-import net.intelie.monitor.events.QueueStoppedConsuming;
-import net.intelie.monitor.notifiers.EmailNotifier;
+import net.intelie.monitor.notifiers.Notifier;
 import org.apache.log4j.Logger;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Date;
 
 public class QueueMonitorListener implements Listener {
 
     private static Logger logger = Logger.getLogger(QueueMonitorListener.class);
 
-    private EmailNotifier emailNotifier;
-    private List<String> recipients = new ArrayList<String>();
-    private String companyName;
-    private List<String> smsRecipients = new ArrayList<String>();
-    private String smsPasscode;
+    private String company;
+    private Notifier notifier;
+    private long interval;
+    private long lastTimestamp;
 
-    public QueueMonitorListener(String[] rec, String companyName, String[] smsRec, String smsPass) {
-        for (String to : rec) {
-            recipients.add(to.trim());
-        }
-        for (String to : smsRec){
-            smsRecipients.add(to.trim());
-        }
-        this.companyName = companyName;
-        this.emailNotifier = new EmailNotifier();
-        this.smsPasscode = smsPass;
+    public QueueMonitorListener(String company, Notifier notifier, long interval) {
+        this.company = company;
+        this.notifier = notifier;
+        this.interval = interval;
+        this.lastTimestamp = -interval;
     }
 
     public void notify(Event event) {
-        if (event instanceof QueueStoppedConsuming) {
-            QueueStoppedConsuming queueStoppedConsuming = (QueueStoppedConsuming) event;
-            logger.warn("Queue " + queueStoppedConsuming.getQueueName() + " stopped consuming events.");
-            logger.warn("Notifying recipients: ");
-            for (String to : recipients) {
-                logger.warn(to);
-            }
+        notify(event, System.currentTimeMillis());
+    }
 
-            emailNotifier.send(recipients, smsRecipients, "[ERRO] Problema no ambiente " + companyName, smsPasscode, "A fila " + queueStoppedConsuming.getQueueName() + " parou de ser consumida no ambiente: " + companyName);
+    public void notify(Event event, long timestamp) {
+        logger.warn("Event " + event.getMessage() + " at " + timestamp);
+
+        if (timestamp - lastTimestamp < interval) {
+            logger.info("Discarding [" + (timestamp - lastTimestamp) + "...");
+            return;
         }
+        lastTimestamp = timestamp;
+
+        notifier.send("[ERRO][" + company + "] " + event.getMessage(), event.getMessage());
     }
 
 }
+

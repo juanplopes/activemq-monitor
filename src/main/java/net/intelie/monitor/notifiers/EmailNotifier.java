@@ -9,50 +9,45 @@ import javax.mail.Transport;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 import java.io.IOException;
-import java.util.List;
 import java.util.Properties;
 
-public class EmailNotifier {
-
+public class EmailNotifier implements Notifier {
     private static Logger logger = Logger.getLogger(EmailNotifier.class);
 
-    private Session session;
+    Session session;
+    String[] recipients;
 
-    public EmailNotifier() {
-        Properties properties = new Properties();
+    public EmailNotifier(String[] recipients) {
+        this.recipients = recipients;
         try {
+            Properties properties = new Properties();
             properties.load(this.getClass().getClassLoader().getResourceAsStream("mail.properties"));
             session = Session.getDefaultInstance(properties, null);
         } catch (IOException e) {
-            logger.error("Could not load properties. Is file mail.properties in classpath?", e);
+            throw new RuntimeException("Could not load mail properties. Is file mail.properties in classpath?", e);
         }
     }
 
-    public void send(List<String> recipients, List<String> smsRecipients, String subject, String smsPasscode, String body) {
+    @Override
+    public void send(String subject, String body) {
+        logger.warn("Notifying recipients: ");
+        for (String to : recipients)
+            logger.warn(to);
+
         try {
             MimeMessage message = new MimeMessage(session);
-            MimeMessage sms = new MimeMessage(session);
-            for (String to : recipients) {
+            for (String to : recipients)
                 message.addRecipient(Message.RecipientType.TO, new InternetAddress(to));
-            }
-            for (String toSms : smsRecipients) {
-                sms.addRecipient(Message.RecipientType.TO, new InternetAddress(toSms));
-            }
-            if (!recipients.isEmpty()) {
+
+            if (recipients.length > 0) {
                 message.setSubject(subject);
                 message.setText(body);
                 Transport.send(message);
             }
-            if (!smsRecipients.isEmpty()) {
-                sms.setSubject(smsPasscode);
-                sms.setText(body);
-                Transport.send(sms);
-            }
         }
         catch (MessagingException e) {
-            logger.error("Could not send email. Verify correctness of file mail.properties", e);
+            throw new RuntimeException("Could not send email. Verify correctness of file mail.properties", e);
         }
-
     }
 
 }
