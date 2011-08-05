@@ -1,9 +1,6 @@
 package net.intelie.monitor.engine;
 
-import net.intelie.monitor.events.CompositeEvent;
-import net.intelie.monitor.events.Event;
-import net.intelie.monitor.events.QueueNotFound;
-import net.intelie.monitor.events.QueueStoppedConsuming;
+import net.intelie.monitor.events.*;
 import org.apache.log4j.Logger;
 
 import java.util.LinkedList;
@@ -19,7 +16,7 @@ public class QueueCollection {
     List<QueueMonitor> monitors;
 
     public QueueCollection(String[] monitoredQueues) {
-        LinkedList<QueueMonitor> monitors = new LinkedList<QueueMonitor>();
+        monitors = new LinkedList<QueueMonitor>();
 
         for (String queueName : monitoredQueues) {
             monitors.add(new QueueMonitor(queueName));
@@ -35,6 +32,8 @@ public class QueueCollection {
                 events.add(e);
             } catch (QueueStoppedConsuming e) {
                 events.add(e);
+            } catch (Throwable e) {
+                events.add(new UnhandledEvent(e));
             }
 
         if (!events.isEmpty())

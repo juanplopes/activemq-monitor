@@ -19,7 +19,7 @@ public class TestQueueMonitor extends TestCase {
         verify(checker, times(1)).getDequeueCount("myQueue");
     }
 
-    public void testWillNotNotifyIfReceivedThreeDequeuesOfSameValue() throws QueueNotFound, QueueStoppedConsuming {
+    public void testWillNotifyIfReceivedThreeDequeuesOfSameValue() throws QueueNotFound, QueueStoppedConsuming {
         EngineChecker checker = mock(EngineChecker.class);
         when(checker.getDequeueCount("myQueue")).thenReturn(new Long(42));
 
@@ -35,6 +35,23 @@ public class TestQueueMonitor extends TestCase {
         verify(checker, times(3)).getDequeueCount("myQueue");
     }
 
+    public void testWillNotifyIfReceivedThreeDequeuesOfSameValueWithUnqueue() throws QueueNotFound, QueueStoppedConsuming {
+        EngineChecker checker = mock(EngineChecker.class);
+        when(checker.getDequeueCount("myQueue")).thenReturn(new Long(43), new Long(42), new Long(42), new Long(42));
+
+        QueueMonitor monitor = new QueueMonitor("myQueue");
+        monitor.check(checker);
+        monitor.check(checker);
+        monitor.check(checker);
+        try {
+            monitor.check(checker);
+            fail("should've throw exception");
+        } catch (QueueStoppedConsuming e) {
+        }
+
+        verify(checker, times(4)).getDequeueCount("myQueue");
+    }
+
     public void testWillNotNotifyIfReceivedThreeDequeuesOfDifferentValues() throws QueueNotFound, QueueStoppedConsuming {
         EngineChecker checker = mock(EngineChecker.class);
         when(checker.getDequeueCount("myQueue")).thenReturn(new Long(42), new Long(43), new Long(44));
@@ -46,7 +63,6 @@ public class TestQueueMonitor extends TestCase {
 
         verify(checker, times(3)).getDequeueCount("myQueue");
     }
-
 
     public void testWillBubbleUpIfQueueWasNotFound() throws QueueNotFound, QueueStoppedConsuming {
         EngineChecker checker = mock(EngineChecker.class);

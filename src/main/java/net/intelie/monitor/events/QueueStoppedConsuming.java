@@ -1,8 +1,8 @@
 package net.intelie.monitor.events;
 
-public class QueueStoppedConsuming extends Exception implements Event {
+public class QueueStoppedConsuming extends BaseEvent {
     public QueueStoppedConsuming(String queueName) {
-        super("The queue " + queueName + " stopped consuming");
+        super("The queue '" + queueName + "' stopped consuming.", "The queue '" + queueName + "' stopped consuming.");
     }
 
 }

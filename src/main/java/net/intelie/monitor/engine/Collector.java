@@ -35,21 +35,29 @@ public class Collector {
         timer.schedule(new MonitorTask(), 0, INTERVAL_IN_SECS * 1000);
     }
 
+    public void checkAll() {
+        logger.debug("Retrieving information");
+        try {
+            checker.connect();
+            collection.checkAll(checker);
+            logger.debug("Everything is ok.");
+        } catch (CompositeEvent e) {
+            listener.notify(e);
+        } catch (ServerUnavailable e) {
+            listener.notify(e);
+        } catch (Exception e) {
+            logger.warn("Error retrieving information: " + e.getMessage());
+            logger.debug(e);
+        } finally {
+            checker.disconnect();
+        }
+    }
+
     class MonitorTask extends TimerTask {
         public void run() {
-            logger.debug("Retrieving information");
-            try {
-                checker.connect();
-                collection.checkAll(checker);
-            } catch (CompositeEvent e) {
-                listener.notify(e);
-            } catch (ServerUnavailable e) {
-                listener.notify(e);
-            } catch (Exception e) {
-                logger.warn("Error retrieving information: " + e.getMessage());
-                logger.debug(e);
-            }
+            checkAll();
         }
+
 
     }
 

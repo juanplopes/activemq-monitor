@@ -13,7 +13,7 @@ public class MonitorConfiguration {
     private String[] recipients, monitoredQueues;
     private String server, port, path;
     private String domain, brokerName, company;
-    private long interval;
+    private long notificationInterval;
 
     public MonitorConfiguration(String resource) {
         this(MonitorConfiguration.class.getClassLoader().getResourceAsStream(resource));
@@ -30,7 +30,7 @@ public class MonitorConfiguration {
             domain = properties.getProperty("domain");
             brokerName = properties.getProperty("brokerName");
 
-            interval = Long.parseLong(properties.getProperty("minInterval")) * 60 * 1000;
+            notificationInterval = Long.parseLong(properties.getProperty("minInterval")) * 60 * 1000;
 
             company = properties.getProperty("company");
 
@@ -51,7 +51,7 @@ public class MonitorConfiguration {
     }
 
     public QueueMonitorListener createListener() {
-        return new QueueMonitorListener(company, new EmailNotifier(recipients), interval);
+        return new QueueMonitorListener(company, new EmailNotifier(recipients), notificationInterval);
     }
 
     public QueueCollection createQueueMonitors() {

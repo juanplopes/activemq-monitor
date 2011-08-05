@@ -16,6 +16,7 @@ public class QueueMonitorListener implements Listener {
     private long lastTimestamp;
 
     public QueueMonitorListener(String company, Notifier notifier, long interval) {
+        interval *= 60 * 1000; //minutes
         this.company = company;
         this.notifier = notifier;
         this.interval = interval;
@@ -30,12 +31,12 @@ public class QueueMonitorListener implements Listener {
         logger.warn("Event " + event.getMessage() + " at " + timestamp);
 
         if (timestamp - lastTimestamp < interval) {
-            logger.info("Discarding [" + (timestamp - lastTimestamp) + "...");
+            logger.info("Discarding [" + (timestamp - lastTimestamp) + "]...");
             return;
         }
         lastTimestamp = timestamp;
 
-        notifier.send("[ERRO][" + company + "] " + event.getMessage(), event.getMessage());
+        notifier.send("[ERRO][" + company + "] " + event.getMessage(), event.getDetail());
     }
 
 }

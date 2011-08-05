@@ -40,10 +40,10 @@ public class ActiveMQChecker implements EngineChecker {
             logger.debug("Connecting to " + server + " on port " + port);
 
             JMXServiceURL url = new JMXServiceURL(fullUrl);
+            logger.debug("To url " + url.toString());
             this.connector = JMXConnectorFactory.newJMXConnector(url, new HashMap());
+            this.connector.connect();
             this.connection = connector.getMBeanServerConnection();
-            this.domain = domain;
-            this.brokerName = brokerName;
 
             logger.debug("Connected " + connector.getConnectionId());
         } catch (MalformedURLException e) {

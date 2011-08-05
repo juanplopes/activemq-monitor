@@ -27,13 +27,12 @@ public class QueueMonitor {
     }
 
     public void check(EngineChecker checker) throws QueueNotFound, QueueStoppedConsuming {
-        while (lastChecks.size() > EVENTS_BEFORE_NOTIFY)
+        while (lastChecks.size() >= EVENTS_BEFORE_NOTIFY)
             lastChecks.removeFirst();
 
         long last = checker.getDequeueCount(queueName);
 
         logger.info("Checked queue " + queueName + ": " + last);
-
 
         lastChecks.addLast(last);
         evaluate();

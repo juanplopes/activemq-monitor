@@ -22,10 +22,10 @@ public class Main {
             QueueMonitorListener listener = configuration.createListener();
             QueueCollection monitors = configuration.createQueueMonitors();
             Collector collector = new Collector(checker, listener, monitors);
-            collector.start();;
-        } catch(Throwable e) {
-
+            collector.start();
+        } catch (Throwable e) {
+            logger.warn(e.getMessage(), e);
         }
     }
-    
+
 }
