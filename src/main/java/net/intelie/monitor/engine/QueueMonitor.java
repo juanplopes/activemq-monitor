@@ -30,7 +30,12 @@ public class QueueMonitor {
         while (lastChecks.size() > EVENTS_BEFORE_NOTIFY)
             lastChecks.removeFirst();
 
-        lastChecks.addLast(checker.getDequeueCount(queueName));
+        long last = checker.getDequeueCount(queueName);
+
+        logger.info("Checked queue " + queueName + ": " + last);
+
+
+        lastChecks.addLast(last);
         evaluate();
     }
 

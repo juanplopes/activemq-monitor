@@ -35,6 +35,19 @@ public class TestQueueMonitor extends TestCase {
         verify(checker, times(3)).getDequeueCount("myQueue");
     }
 
+    public void testWillNotNotifyIfReceivedThreeDequeuesOfDifferentValues() throws QueueNotFound, QueueStoppedConsuming {
+        EngineChecker checker = mock(EngineChecker.class);
+        when(checker.getDequeueCount("myQueue")).thenReturn(new Long(42), new Long(43), new Long(44));
+
+        QueueMonitor monitor = new QueueMonitor("myQueue");
+        monitor.check(checker);
+        monitor.check(checker);
+        monitor.check(checker);
+
+        verify(checker, times(3)).getDequeueCount("myQueue");
+    }
+
+
     public void testWillBubbleUpIfQueueWasNotFound() throws QueueNotFound, QueueStoppedConsuming {
         EngineChecker checker = mock(EngineChecker.class);
         when(checker.getDequeueCount("myQueue")).thenThrow(new QueueNotFound("myQueue", new Exception()));
