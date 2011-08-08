@@ -45,6 +45,22 @@ public class TestCollector extends TestCase {
         verifyNoMoreInteractions(engine);
     }
 
+    public void testWillNotThrowExceptionIfListenerThrowsException() throws CompositeEvent, ServerUnavailable {
+        QueueCollection collection = mock(QueueCollection.class);
+        Listener listener = mock(Listener.class);
+        EngineChecker engine = mock(EngineChecker.class);
+
+        doThrow(new RuntimeException()).when(listener).notify(any(Event.class));
+        doThrow(new ServerUnavailable("test", new Exception())).when(engine).connect();
+
+        Collector collector = new Collector(engine, listener, collection);
+        collector.checkAll();
+
+        verify(engine).connect();
+        verify(engine).disconnect();
+        verify(listener).notify(any(ServerUnavailable.class));
+    }
+
     public void testWillNotifyListenerIfServerIsUnavailable() throws CompositeEvent, ServerUnavailable {
         QueueCollection collection = mock(QueueCollection.class);
         Listener listener = mock(Listener.class);

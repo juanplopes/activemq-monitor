@@ -2,6 +2,7 @@ package net.intelie.monitor.engine;
 
 import net.intelie.monitor.events.CompositeEvent;
 import net.intelie.monitor.events.ServerUnavailable;
+import net.intelie.monitor.events.UnhandledEvent;
 import net.intelie.monitor.listeners.Listener;
 import org.apache.log4j.Logger;
 
@@ -38,18 +39,24 @@ public class Collector {
     public void checkAll() {
         logger.debug("Retrieving information");
         try {
-            checker.connect();
-            collection.checkAll(checker);
-            logger.debug("Everything is ok.");
-        } catch (CompositeEvent e) {
-            listener.notify(e);
-        } catch (ServerUnavailable e) {
-            listener.notify(e);
+            try {
+                checker.connect();
+                collection.checkAll(checker);
+                logger.debug("Everything is ok.");
+            } catch (CompositeEvent e) {
+                listener.notify(e);
+            } catch (ServerUnavailable e) {
+                listener.notify(e);
+            } catch (Exception e) {
+                listener.notify(new UnhandledEvent(e));
+                logger.warn("Error retrieving information: " + e.getMessage());
+                logger.debug(e);
+            } finally {
+                checker.disconnect();
+            }
         } catch (Exception e) {
-            logger.warn("Error retrieving information: " + e.getMessage());
-            logger.debug(e);
-        } finally {
-            checker.disconnect();
+            logger.warn("Error notifying: " + e.getMessage());
+            logger.debug(e.getStackTrace());
         }
     }
 
